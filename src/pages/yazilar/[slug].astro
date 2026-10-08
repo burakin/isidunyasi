@@ -1,0 +1,11 @@
+---
+import Base from '../../layouts/Base.astro';
+import ArticleCard from '../../components/ArticleCard.astro';
+import {getCollection,render} from 'astro:content';
+export async function getStaticPaths(){const posts=await getCollection('blog');return posts.map(post=>({params:{slug:post.id},props:{post}}));}
+const {post}=Astro.props;
+const {Content,headings}=await render(post);
+const related=(await getCollection('blog')).filter(p=>p.id!==post.id).sort((a,b)=>Number(b.data.category===post.data.category)-Number(a.data.category===post.data.category)).slice(0,2);
+const base=import.meta.env.BASE_URL;
+---
+<Base title={`${post.data.title} | Isı Dünyası`} description={post.data.description}><article><div class="shell article-heading"><a href={base} class="back-link">← Tüm yazılara dön</a><div class="article-tag">{post.data.category} <span class="meta-dot">•</span> {post.data.readTime||6} DAKİKA OKUMA</div><h1>{post.data.title}</h1><p class="article-deck">{post.data.description}</p><div class="article-byline"><span class="author-avatar">✳</span><div><strong>Isı Dünyası Editörleri</strong><span><time datetime={post.data.date.toISOString()}>{post.data.date.toLocaleDateString('tr-TR',{day:'numeric',month:'long',year:'numeric'})}</time> tarihinde yayımlandı</span></div></div></div><div class="shell article-cover"><img src={post.data.image} alt={post.data.imageAlt||post.data.title}/></div><div class="shell article-layout"><aside class="toc"><span>BU YAZIDA</span><nav aria-label="İçindekiler">{headings.filter(h=>h.depth===2||h.depth===3).map(h=><a class:list={[{'toc-sub':h.depth===3}]} href={`#${h.slug}`}>{h.text}</a>)}</nav></aside><div class="article-body prose"><Content/><div class="article-note"><strong>Önemli not</strong><p>Bu yazı genel bilgilendirme amaçlıdır. Evinize uygun kapasite, ısı kaybı ve kurulum detayları için yetkin bir uzmandan yerinde keşif alın.</p></div><a class="back-link" href={base}>← Diğer yazılara göz at</a></div></div></article><section class="shell related-section"><div class="related-heading"><span class="section-kicker">OKUMAYA DEVAM EDİN</span><h2>İlginizi çekebilir.</h2></div><div class="article-grid related-grid">{related.map(p=><ArticleCard post={p}/>)}</div></section></Base>
